@@ -1,0 +1,65 @@
+#!/bin/bash
+# pandoc-letters - Generate great looking letters from markdown using Pandoc
+
+# Usage: ./pandoc-letters <options> <template> <source>
+# Example: ./pandoc-letters -s my_sig.eps formal example.pd
+
+# You can changes the TEMPLATE_DIR, SIGNATURE_DIR, SRC_DIR and DIST_DIR if you like.
+TEMPLATE_DIR=./resources/templates/
+SIGNATURE_DIR=./resources/signatures/
+DIST_DIR=./dist/
+SRC_DIR=./src/
+
+VARIABLES=""
+#OUTPUT_FILE=""
+
+while :
+do
+    case $1 in
+        -h )
+            # Call help
+            exit 0
+            ;;
+        -o )
+            OUTPUT_FILE=$2
+            shift 2
+            ;;
+        -s )
+            VARIABLES="$VARIABLES --variable=sigimage:$SIGNATURE_DIR$2"
+            shift 2
+            ;;
+        -f )
+            VARIABLES="$VARIABLES --variable=foldmarks:true"
+            shift
+            ;;
+        --) # End of all options
+            shift
+            break
+            ;;
+        -*)
+            printf >&2 'WARN: Unknown option (ignored): %s\n' "$1"
+            shift
+            ;;
+        *)  # no more options
+            break;
+            ;;
+    esac
+done
+
+if [ ! -d "$DIST_DIR" ]; then
+    mkdir -p $DIST_DIR
+fi
+
+# Check if output file has been provided, if not generate default
+if [ -z ${OUTPUT_FILE+x} ]; then
+    FULL_FILENAME=$2
+    FILENAME=${FULL_FILENAME##*/}
+    DATE=`date +%Y%m%d`
+    OUTPUT_FILE=$DIST_DIR${FILENAME%%.*}_$DATE.pdf
+    echo $OUTPUT_FILE
+fi
+
+echo "pandoc $VARIABLES --template=$TEMPLATE_DIR$1.tex $SRC_DIR$2 -o $OUTPUT_FILE"
+pandoc $VARIABLES --template=$TEMPLATE_DIR$1.tex $SRC_DIR$2 -o $OUTPUT_FILE
+
+# End of file

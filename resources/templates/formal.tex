@@ -1,0 +1,109 @@
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+    UScommercial9, % ???
+    page=letter, % Set page size to letter
+    pagesize, % Force paper size in pdf
+    fromalign=right, % Align the fromaddress on the right side
+    fromrule=false, % Place a horizontal rule after the from address
+    foldmarks=$if(foldmarks)$$foldmarks$$else$false$endif$, % Turn off fold marks by default, use pandoc option for enabling
+    parskip=half,
+    version=last
+    ]{scrlttr2}
+
+\usepackage[pass]{geometry} 
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{etoolbox}
+
+\KOMAoptions{paper=letter}
+
+\renewcommand*{\raggedsignature}{\raggedright} % Stop the signature from indenting
+
+$if(sigimage)$
+\makeatletter
+\patchcmd{\closing}% <cmd>
+ {\parbox}% <search>
+ {\parbox{\linewidth}{\raggedsignature\strut\ignorespaces%
+ #1 \usekomavar{signature}}%
+ \@gobbletwo}%< <replace>
+ {}{}% <success><failure>
+\makeatother
+$endif$
+
+%----------------------------------------------------------------------------------------
+%	YOUR INFORMATION AND LETTER DATE
+%----------------------------------------------------------------------------------------
+
+% Required variables
+\setkomavar{fromname}{$fromname$}
+\setkomavar{fromaddress}{$for(fromaddress)$$fromaddress.street$ \\ $fromaddress.city$, $fromaddress.state$ $fromaddress.zip$$endfor$}
+
+% Optional variables
+$if(fromphone)$
+\KOMAoptions{fromphone=true}
+\setkomavar{fromphone}{$fromphone$}
+$endif$
+$if(fromfax)$
+\KOMAoptions{fromfax=true}
+\setkomavar{fromfax}{$fromfax$}
+$endif$
+$if(fromemail)$
+\KOMAoptions{fromemail=true}
+\setkomavar{fromemail}{$fromemail$}
+$endif$
+$if(fromurl)$
+\KOMAoptions{fromurl=true}
+\setkomavar{fromurl}{$fromurl$}
+$endif$
+$if(subject)$
+\setkomavar{subject}{$subject$}
+$endif$
+
+\setkomavar{signature}{$if(signature)$$signature$$else$$fromname$$endif$}
+\setkomavar{backaddress}{}
+
+\date{\today} % Date of the letter
+
+%----------------------------------------------------------------------------------------
+ 
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	ADDRESSEE
+%----------------------------------------------------------------------------------------
+ 
+\begin{letter}{$for(addressee)$
+    $if(addressee.name)$$addressee.name$ \\$endif$
+    $if(addressee.title)$$addressee.title$ \\$endif$
+    $if(addressee.organization)$$addressee.organization$ \\$endif$
+    $addressee.street$ \\ $addressee.city$, $addressee.state$ $addressee.zip$
+$endfor$} % Addressee name and address
+
+%----------------------------------------------------------------------------------------
+%	LETTER CONTENT
+%----------------------------------------------------------------------------------------
+
+\opening{$if(opening)$$opening$$else$Dear Sir or Madam,$endif$}
+
+$body$
+
+\closing{$if(closing)$$closing$$else$Sincerely,$endif$$if(sigimage)$ \\ \includegraphics[height=0.5in]{$sigimage$}\\$endif$}
+
+\setkomavar*{enclseparator}{Attached} % Change the default "encl:" to "Attached:"
+$if(attachment)$ % Attachments, if defined
+\encl{$for(attachment)$$attachment$$sep$\\$endfor$}
+$endif$
+
+$if(cc)$ % Carbon copy, if defined
+\cc{$for(cc)$$cc$$sep$\\$endfor$}
+$endif$
+
+%----------------------------------------------------------------------------------------
+
+\end{letter}
+ 
+\end{document}
